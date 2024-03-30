@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class PublichedModel(models.Model):
+class PublishedModel(models.Model):
 
     is_published = models.BooleanField(
         default=True,

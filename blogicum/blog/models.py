@@ -1,14 +1,25 @@
-from django.db import models
 from django.contrib.auth import get_user_model
-from core.models import PublichedModel
+from django.db import models
 from django.utils import timezone
+
+from core.models import PublishedModel
 
 User = get_user_model()
 
 
 class PublishedQuerySet(models.QuerySet):
 
-    def published(self):
+    def published(self, category=None):
+        if category:
+            return self.select_related(
+                'category',
+                'location',
+                'author'
+            ).filter(
+                pub_date__lte=timezone.now(),
+                is_published=True,
+                category=category
+            )
         return self.select_related(
             'category',
             'location',
@@ -20,17 +31,17 @@ class PublishedQuerySet(models.QuerySet):
         )
 
 
-class Category(PublichedModel):
+class Category(PublishedModel):
     title = models.CharField(
-        max_length=256,
-        verbose_name='Заголовок'
+        'Заголовок',
+        max_length=256
     )
     description = models.TextField(
-        verbose_name='Описание'
+        'Описание'
     )
     slug = models.SlugField(
+        'Идентификатор',
         unique=True,
-        verbose_name='Идентификатор',
         help_text='Идентификатор страницы для URL; '
                   'разрешены символы латиницы, цифры, дефис и подчёркивание.'
     )
@@ -43,30 +54,32 @@ class Category(PublichedModel):
         return self.title
 
 
-class Location(PublichedModel):
+class Location(PublishedModel):
     name = models.CharField(
-        max_length=256,
-        verbose_name='Название места'
+        'Название места',
+        max_length=256
     )
 
     class Meta:
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
 
+    def __str__(self):
+        return self.name
 
-class Post(PublichedModel):
+
+class Post(PublishedModel):
     title = models.CharField(
-        max_length=256,
-        verbose_name='Заголовок'
+        'Заголовок',
+        max_length=256
     )
     text = models.TextField(
-        verbose_name='Текст'
+        'Текст'
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата и время публикации',
-        help_text=(
-            'Если установить дату и время в будущем — '
-            'можно делать отложенные публикации.')
+        'Дата и время публикации',
+        help_text=('Если установить дату и время в будущем — '
+                   'можно делать отложенные публикации.')
     )
     author = models.ForeignKey(
         User,
@@ -89,6 +102,7 @@ class Post(PublichedModel):
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
+        ordering = ('-pub_date',)
 
     objects = PublishedQuerySet.as_manager()
 
