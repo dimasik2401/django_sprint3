@@ -10,25 +10,18 @@ User = get_user_model()
 class PublishedQuerySet(models.QuerySet):
 
     def published(self, category=None):
-        if category:
-            return self.select_related(
-                'category',
-                'location',
-                'author'
-            ).filter(
-                pub_date__lte=timezone.now(),
-                is_published=True,
-                category=category
-            )
-        return self.select_related(
+        base_query_set = self.select_related(
             'category',
             'location',
             'author'
         ).filter(
             pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True
+            is_published=True
         )
+        if category:
+            return base_query_set.filter(category=category)
+        else:
+            return base_query_set.filter(category__is_published=True)
 
 
 class Category(PublishedModel):

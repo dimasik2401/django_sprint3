@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render
-from .models import Category, Post
+
 from blog.constans import NUMBER_POSTS
+from .models import Category, Post
 
 
 def index(request):
@@ -21,7 +22,7 @@ def category_posts(request, category_slug):
     category_list = get_object_or_404(
         Category, is_published=True, slug=category_slug
     )
-    post_list = category_list.post_set.published(category_list.id)
+    post_list = category_list.post_set.published(category=None)
     context = {
         'category': category_list,
         'post_list': post_list
